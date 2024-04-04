@@ -3,6 +3,7 @@ const express = require("express");
 const photos = require("../model/Image");
 const multer = require("multer");
 const router = express();
+const crypto = require('crypto');
 
 const storage = multer.memoryStorage(); // Save the file in memory as a Buffer
 
@@ -17,20 +18,29 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-function generateRandomId(length) {
-  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charset.length);
-    result += charset[randomIndex];
-  }
-  return result;
+function generateRandomString(length) {
+  return new Promise((resolve, reject) => {
+      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+      let result = '';
+      crypto.randomBytes(length, (err, buf) => {
+          if (err) {
+              reject(err);
+              return;
+          }
+          for (let i = 0; i < buf.length; i++) {
+              result += chars.charAt(buf[i] % chars.length);
+          }
+          resolve(result);
+      });
+  });
 }
 
-const randomId = generateRandomId(10);
 
 router.post("/new-image", upload.single("image"), async (req, res) => {
     try {
+
+      const randomId = await generateRandomString(10);
+
       const newProduct = new photos({
         userID: randomId,
         title: req.body.title,
@@ -49,14 +59,14 @@ router.post("/new-image", upload.single("image"), async (req, res) => {
     }
   });
   
-//   router.get("/images", (req, res) => {
-//     photos.find({}).then((title, image, err) => {
-//       if (err) {
-//         console.log(err);
-//       }
-//       res.send(title, image);
-//     });
-//   });
+  router.get("/all-images", (req, res) => {
+    photos.find({}).then((userID, title, image, err) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(userID, title, image);
+    });
+  });
 
 router.get("/images", async (req, res) => {
     try {

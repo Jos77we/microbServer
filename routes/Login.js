@@ -4,9 +4,27 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const asyncHandler = require('express-async-handler')
 const {security} = require('../middleware/authMiddleware')
+const crypto = require('crypto');
 
 
 const router = express()
+
+function generateRandomString(length) {
+    return new Promise((resolve, reject) => {
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        let result = '';
+        crypto.randomBytes(length, (err, buf) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            for (let i = 0; i < buf.length; i++) {
+                result += chars.charAt(buf[i] % chars.length);
+            }
+            resolve(result);
+        });
+    });
+  }
 
 //create new user
 router.post("/new" , asyncHandler(async (req, res) =>{
@@ -30,11 +48,14 @@ router.post("/new" , asyncHandler(async (req, res) =>{
     const salt = await bcrypt.genSalt(10)
     const hasedPassword = await bcrypt.hash(password, salt)
     
+    const randomId = await generateRandomString(10);
+
     //Create new user
     const user = await users.create({
         name,
         email,
-        password: hasedPassword
+        password: hasedPassword,
+        userID: randomId
     })
 
     if(user){
@@ -42,6 +63,7 @@ router.post("/new" , asyncHandler(async (req, res) =>{
             _id: user.id,
             name: user.name,
             email: user.email,
+            userID: user.userID,
             token: generateJWT(user._id)
         })
     }else {
