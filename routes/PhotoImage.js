@@ -89,9 +89,9 @@ router.get("/images", async (req, res) => {
   });
 
   router.get("/latest-photos", async (req, res) => {
-    try {
-     const latestPhotos = await photos.find().sort({ createdAt: -1 }).limit(4);
-     
+  try {
+    const latestPhotos = await photos.find().sort({ createdAt: -1 }).limit(4);
+
     if (!latestPhotos || latestPhotos.length === 0) {
       return res.status(404).json({ message: "No photos found." });
     }
@@ -116,4 +116,5 @@ router.get("/images", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
   module.exports = router;
