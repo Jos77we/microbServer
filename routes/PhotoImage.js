@@ -90,14 +90,30 @@ router.get("/images", async (req, res) => {
 
   router.get("/latest-photos", async (req, res) => {
     try {
-      // Query the database to retrieve the latest 4 documents sorted by createdAt in descending order
-      const latestPhotos = await photos.find().sort({ createdAt: -1 }).limit(4);
-  
-      res.json(latestPhotos);
-    } catch (error) {
-      // Handle errors
-      res.status(500).json({ message: error.message });
+     const latestPhotos = await photos.find().sort({ createdAt: -1 }).limit(4);
+     
+    if (!latestPhotos || latestPhotos.length === 0) {
+      return res.status(404).json({ message: "No photos found." });
     }
-  });
 
+    // Extract necessary data from the latest photo
+    const { title, image } = latestPhotos[0]; // Assuming you want to get data from the latest photo
+
+    // Check if image data exists
+    if (!image || !image.data) {
+      return res.status(404).json({ message: "No image data found." });
+    }
+
+    // Convert image data to base64
+    const imageBase64 = image.data.toString("base64");
+
+    res.json({
+      title,
+      image: imageBase64,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
   module.exports = router;
