@@ -60,11 +60,11 @@ router.post("/new-image", upload.single("image"), async (req, res) => {
   });
   
   router.get("/all-images", (req, res) => {
-    photos.find({}).then((userID, title, image, err) => {
+    photos.find({}).then((title, image, err) => {
       if (err) {
         console.log(err);
       }
-      res.send(userID, title, image);
+      res.send(title, image);
     });
   });
 
@@ -85,6 +85,18 @@ router.get("/images", async (req, res) => {
     } catch (err) {
       console.error(err);
       res.status(500).send("Internal Server Error");
+    }
+  });
+
+  router.get("/latest-photos", async (req, res) => {
+    try {
+      // Query the database to retrieve the latest 4 documents sorted by createdAt in descending order
+      const latestPhotos = await photos.find().sort({ createdAt: -1 }).limit(4);
+  
+      res.json(latestPhotos);
+    } catch (error) {
+      // Handle errors
+      res.status(500).json({ message: error.message });
     }
   });
 
