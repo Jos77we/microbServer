@@ -96,21 +96,23 @@ router.get("/images", async (req, res) => {
       return res.status(404).json({ message: "No photos found." });
     }
 
-    // Extract necessary data from the latest photo
-    const { title, image } = latestPhotos[0]; // Assuming you want to get data from the latest photo
+    const formattedPhotos = latestPhotos.map(photo => {
+      const { title, image } = photo;
 
-    // Check if image data exists
-    if (!image || !image.data) {
-      return res.status(404).json({ message: "No image data found." });
-    }
+      if (!image || !image.data) {
+        return res.status(404).json({ message: "No image data found." });
+      }
 
-    // Convert image data to base64
-    const imageBase64 = image.data.toString("base64");
+      // Convert image data to base64
+      const imageBase64 = image.data.toString("base64");
 
-    res.json({
-      title,
-      image: imageBase64,
+      return {
+        title,
+        image: imageBase64,
+      };
     });
+
+    res.json(formattedPhotos);
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");
