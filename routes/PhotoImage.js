@@ -97,7 +97,7 @@ router.get("/images", async (req, res) => {
     }
 
     const formattedPhotos = latestPhotos.map(photo => {
-      const { title, image } = photo;
+      const { userID, title, image } = photo;
 
       if (!image || !image.data) {
         return res.status(404).json({ message: "No image data found." });
@@ -107,6 +107,7 @@ router.get("/images", async (req, res) => {
       const imageBase64 = image.data.toString("base64");
 
       return {
+        userID,
         title,
         image: imageBase64,
       };
