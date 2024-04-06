@@ -120,4 +120,38 @@ router.get("/images", async (req, res) => {
   }
 });
 
+router.get("/selected-photo", async (req, res) => {
+  try {
+    const { userID } = req.query;
+
+    if (!userID) {
+      return res.status(400).json({ message: "userID parameter is required." });
+    }
+
+    const userPhoto = await photos.findOne({userID: { $in: userID }});
+
+    if (!userPhoto) {
+      return res.status(404).json({ message: "No photo found for the specified userID." });
+    }
+
+    const { image } = userPhoto;
+
+    if (!image || !image.data) {
+      return res.status(404).json({ message: "No image data found for the specified userID." });
+    }
+
+    // Convert image data to base64
+    const imageBase64 = image.data.toString("base64");
+
+    const formattedPhoto = {
+      image: imageBase64,
+    };
+
+    res.json(formattedPhoto);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
   module.exports = router;
